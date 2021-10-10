@@ -10,7 +10,7 @@ package pe.grupo12.modelo;
  * @author ID46499778
  */
 public class Publicacion {
-    private Integer id;
+    private String id;
     private String titulo;
     private String idTipo;
     private String autor;
@@ -18,11 +18,11 @@ public class Publicacion {
     private Float precio;
     private int stock;
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -77,7 +77,7 @@ public class Publicacion {
     public Publicacion() {
     }
 
-    public Publicacion(Integer id, String titulo, String idTipo, String autor, String nroEdicion, Float precio, int stock) {
+    public Publicacion(String id, String titulo, String idTipo, String autor, String nroEdicion, Float precio, int stock) {
         this.id = id;
         this.titulo = titulo;
         this.idTipo = idTipo;

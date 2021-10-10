@@ -7,7 +7,9 @@ package pe.grupo12.services.impl;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -29,7 +31,41 @@ public class PublicacionServiceImpl implements PublicacionService {
 
     @Override
     public List<Publicacion> listarPorTipo(String tipo) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Connection con = null;
+        Publicacion publicacion = null;
+        List<Publicacion> publicaciones = new ArrayList<>();
+        
+        try {
+            con = AccesoDB.getConnection();
+            con.setAutoCommit(false);
+            String query = "SELECT IDPUBLICACION, TITULO, IDTIPO, AUTOR, NROEDICION, PRECIO, STOCK " +
+                            "FROM PUBLICACION " +
+                            "WHERE IDTIPO = ?";
+            
+            PreparedStatement statement = con.prepareStatement(query);
+            statement.setString(1, tipo);
+            
+            ResultSet rs = statement.executeQuery();
+            
+            while (rs.next()) {
+                publicacion = new Publicacion();
+                publicacion.setId(rs.getString("IDPUBLICACION"));
+                publicacion.setTitulo(rs.getString("TITULO"));
+                publicacion.setIdTipo(rs.getString("IDTIPO"));
+                publicacion.setAutor(rs.getString("AUTOR"));
+                publicacion.setNroEdicion(rs.getString("NROEDICION"));
+                publicacion.setPrecio(rs.getFloat("PRECIO"));
+                publicacion.setStock(rs.getInt("STOCK"));
+                
+                publicaciones.add(publicacion);
+            }
+            
+            con.commit();
+        } catch (Exception ex) {
+            Logger.getLogger(LogonServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return publicaciones;
     }
 
     @Override

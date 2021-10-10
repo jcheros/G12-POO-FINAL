@@ -15,6 +15,7 @@ import pe.grupo12.modelo.Venta;
  */
 public interface VentaService {
     Venta registrarVenta(Venta venta);
+    Venta calcularMontos(Venta venta);
     List<Venta> listarVentasPorTipoPublicacion(String tipoPublicacion);
     List<Venta> listarVentasPorEmpleado(Integer idEmpleado);
     List<Venta> listarVentasPorRangoFechas(Date inicio, Date fin);

@@ -36,26 +36,7 @@ public class VentaServiceImpl implements VentaService {
                     + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             venta.setId(getId());
-            
-            // Verificamos si aplica promoción
-            PromocionServiceImpl promocionService = new PromocionServiceImpl();
-            Optional<Promocion> promocionOptional = promocionService.getPromocion(venta.getCantidad());
-            
-            if (promocionOptional.isPresent()) {
-                venta.setDcto(venta.getPrecio() * promocionOptional.get().getPorcentaje());
-            } else {
-                venta.setDcto(0f);
-            }
-            
-            venta.setSubTotal(venta.getPrecio() - venta.getDcto());
-            
-            // Verificamos el impuesto
-            ControlServiceImpl controlService = new ControlServiceImpl();
-            Float igv = controlService.getIGV();
-            venta.setImpuesto(igv);
-            
-            // Calculamosel total
-            venta.setTotal(venta.getSubTotal() +  (venta.getSubTotal() * venta.getImpuesto()));
+            venta = calcularMontos(venta);
                         
             PreparedStatement statement = con.prepareStatement(query);
             statement.setInt(1, venta.getId());
@@ -82,6 +63,31 @@ public class VentaServiceImpl implements VentaService {
         } catch (Exception ex) {
             Logger.getLogger(LogonServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        return venta;
+    }
+    
+    @Override
+    public Venta calcularMontos(Venta venta) {
+        // Verificamos si aplica promoción
+        PromocionServiceImpl promocionService = new PromocionServiceImpl();
+        Optional<Promocion> promocionOptional = promocionService.getPromocion(venta.getCantidad());
+
+        if (promocionOptional.isPresent()) {
+            venta.setDcto((venta.getCantidad() * venta.getPrecio()) * promocionOptional.get().getPorcentaje());
+        } else {
+            venta.setDcto(0f);
+        }
+
+        venta.setSubTotal((venta.getCantidad() * venta.getPrecio()) - venta.getDcto());
+
+        // Verificamos el impuesto
+        ControlServiceImpl controlService = new ControlServiceImpl();
+        Float igv = controlService.getIGV();
+        venta.setImpuesto(venta.getSubTotal() * igv);
+
+        // Calculamosel total
+        venta.setTotal(venta.getSubTotal() + venta.getImpuesto());
         
         return venta;
     }
