@@ -5,17 +5,102 @@
  */
 package pe.grupo12.view;
 
+import java.awt.event.ItemEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.swing.table.DefaultTableModel;
+import pe.grupo12.modelo.Publicacion;
+import pe.grupo12.modelo.TipoPublicacion;
+import pe.grupo12.services.impl.PublicacionServiceImpl;
+import pe.grupo12.services.impl.TipoPublicacionServiceImpl;
+
 /**
  *
  * @author HP
  */
 public class RegPublicacionView extends javax.swing.JInternalFrame {
+    List<String> tiposPublicacion = new ArrayList<>();
+    List<TipoPublicacion> tipos = new ArrayList<>();
+    
+    TipoPublicacionServiceImpl tipoPublicacionService;
+    PublicacionServiceImpl publicacionService;
+    
+    DefaultTableModel model;
 
     /**
      * Creates new form RegPublicacionView
      */
     public RegPublicacionView() {
         initComponents();
+        tipoPublicacionService = new TipoPublicacionServiceImpl();
+        publicacionService = new PublicacionServiceImpl();
+        
+        tipos = tipoPublicacionService.litarTipos();
+        tiposPublicacion = tipos.stream().map(TipoPublicacion::getId).collect(Collectors.toList());
+        tiposPublicacion.forEach(item -> cbx_IdTipo.addItem(item));
+        
+        model = (DefaultTableModel) tblReporteNuevaPublicacion.getModel();
+        
+        cbx_IdTipo.addItemListener(this::cbxTipoPublicacionItemStateChanged);
+        cbx_IdTipo.setSelectedIndex(-1);
+        
+        txtNroEdicion.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                validarDigitos(e);
+            }
+        });
+        
+        txtPrecio.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                validarDigitos(e);
+            }
+        });
+        
+        txtStock.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                validarDigitos(e);
+            }
+        });
+    }
+    
+    public void validarDigitos(KeyEvent e) {
+        char c = e.getKeyChar();
+        
+        if (!((c >= '0') && (c <= '9') ||
+           (c == KeyEvent.VK_BACK_SPACE) ||
+           (c == KeyEvent.VK_DELETE))) {
+            getToolkit().beep();
+            e.consume();
+        }
+    }
+    
+    // Evento de selección de tipos de publicación
+    public void cbxTipoPublicacionItemStateChanged(ItemEvent e) {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+            generarIdPublicacion();
+        }
+    }
+    
+    private void generarIdPublicacion() {
+        String idTipo = cbx_IdTipo.getSelectedItem().toString();
+        tipos = tipoPublicacionService.litarTipos();
+        Optional<TipoPublicacion> tipoOptional = tipos.stream().filter(item -> item.getId().equals(idTipo)).findFirst();
+
+        if (tipoOptional.isPresent()) {
+            TipoPublicacion tipo = tipoOptional.get();
+            int contador = tipo.getContador() + 1;
+            String idPublicacion = String.format("%" + (-(contador > 9 ? 6 : 7)) + "s", tipo.getId());
+            idPublicacion = idPublicacion.replace(" ", "0");
+            idPublicacion = String.format("%s%s", idPublicacion, contador);
+            txtIdPublicacion.setText(idPublicacion);
+        }
     }
 
     /**
@@ -126,7 +211,6 @@ public class RegPublicacionView extends javax.swing.JInternalFrame {
         jLabel7.setFont(new java.awt.Font("Lucida Console", 1, 12)); // NOI18N
         jLabel7.setText("STOCK:");
 
-        cbx_IdTipo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         cbx_IdTipo.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 cbx_IdTipoItemStateChanged(evt);
@@ -135,6 +219,14 @@ public class RegPublicacionView extends javax.swing.JInternalFrame {
         cbx_IdTipo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cbx_IdTipoActionPerformed(evt);
+            }
+        });
+
+        txtIdPublicacion.setEditable(false);
+        txtIdPublicacion.setEnabled(false);
+        txtIdPublicacion.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtIdPublicacionActionPerformed(evt);
             }
         });
 
@@ -228,10 +320,7 @@ public class RegPublicacionView extends javax.swing.JInternalFrame {
         tblReporteNuevaPublicacion.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
         tblReporteNuevaPublicacion.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null}
+
             },
             new String [] {
                 "ID PUBLICACIÓN", "TÍTULO", "ID TIPO", "AUTOR", "NRO EDICIÓN", "PRECIO", "STOCK"
@@ -314,6 +403,28 @@ public class RegPublicacionView extends javax.swing.JInternalFrame {
 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
         // TODO add your handling code here:
+        Publicacion publicacion = new Publicacion();
+        publicacion.setId(txtIdPublicacion.getText());
+        publicacion.setTitulo(txtTitulo.getText());
+        publicacion.setIdTipo(cbx_IdTipo.getSelectedItem().toString());
+        publicacion.setAutor(txtAutor.getText());
+        publicacion.setNroEdicion(Integer.parseInt(txtNroEdicion.getText()));
+        publicacion.setPrecio(Float.parseFloat(txtPrecio.getText()));
+        publicacion.setStock(Integer.parseInt(txtStock.getText()));
+        
+        publicacion = publicacionService.agregar(publicacion);
+        limpiarFormulario();
+        generarIdPublicacion();
+        
+        model.addRow(new Object[] {
+            publicacion.getId(),
+            publicacion.getTitulo(),
+            publicacion.getIdTipo(),
+            publicacion.getAutor(),
+            publicacion.getNroEdicion(),
+            publicacion.getPrecio(),
+            publicacion.getStock()
+        });
     }//GEN-LAST:event_btnGuardarActionPerformed
 
     private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
@@ -327,6 +438,10 @@ public class RegPublicacionView extends javax.swing.JInternalFrame {
     private void cbx_IdTipoItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cbx_IdTipoItemStateChanged
         // TODO add your handling code here:
     }//GEN-LAST:event_cbx_IdTipoItemStateChanged
+
+    private void txtIdPublicacionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtIdPublicacionActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtIdPublicacionActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -355,4 +470,12 @@ public class RegPublicacionView extends javax.swing.JInternalFrame {
     private javax.swing.JTextField txtStock;
     private javax.swing.JTextField txtTitulo;
     // End of variables declaration//GEN-END:variables
+
+    public void limpiarFormulario() {
+        txtTitulo.setText("");
+        txtAutor.setText("");
+        txtNroEdicion.setText("");
+        txtPrecio.setText("");
+        txtStock.setText("");
+    }
 }

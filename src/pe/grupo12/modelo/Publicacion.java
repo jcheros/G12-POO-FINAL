@@ -14,7 +14,7 @@ public class Publicacion {
     private String titulo;
     private String idTipo;
     private String autor;
-    private String nroEdicion;
+    private int nroEdicion;
     private Float precio;
     private int stock;
 
@@ -50,11 +50,11 @@ public class Publicacion {
         this.autor = autor;
     }
 
-    public String getNroEdicion() {
+    public int getNroEdicion() {
         return nroEdicion;
     }
 
-    public void setNroEdicion(String nroEdicion) {
+    public void setNroEdicion(int nroEdicion) {
         this.nroEdicion = nroEdicion;
     }
 
@@ -77,7 +77,7 @@ public class Publicacion {
     public Publicacion() {
     }
 
-    public Publicacion(String id, String titulo, String idTipo, String autor, String nroEdicion, Float precio, int stock) {
+    public Publicacion(String id, String titulo, String idTipo, String autor, int nroEdicion, Float precio, int stock) {
         this.id = id;
         this.titulo = titulo;
         this.idTipo = idTipo;

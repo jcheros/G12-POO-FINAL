@@ -58,8 +58,9 @@ public class VentaServiceImpl implements VentaService {
                 publicacionService.actualizarStock(venta.getIdPublicacion(), venta.getCantidad());
             }
             
-            statement.close();
             con.commit();
+            statement.close();
+            con.close();
         } catch (Exception ex) {
             Logger.getLogger(LogonServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -111,6 +112,8 @@ public class VentaServiceImpl implements VentaService {
             }
             
             con.commit();
+            statement.close();
+            con.close();
         } catch (Exception ex) {
             Logger.getLogger(LogonServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -131,7 +134,8 @@ public class VentaServiceImpl implements VentaService {
                             "idventa, cliente, fecha, idempleado, VENTA.idpublicacion, cantidad, VENTA.precio, dcto, subtotal, impuesto, total " +
                             "FROM VENTA " +
                             "JOIN PUBLICACION on PUBLICACION.IDPUBLICACION = VENTA.IDPUBLICACION " +
-                            "WHERE PUBLICACION.IDTIPO = ?";
+                            "WHERE PUBLICACION.IDTIPO = ? " +
+                            "ORDER BY fecha desc";
             
             PreparedStatement statement = con.prepareStatement(query);
             statement.setString(1, tipoPublicacion);
@@ -156,6 +160,8 @@ public class VentaServiceImpl implements VentaService {
             }
             
             con.commit();
+            statement.close();
+            con.close();
         } catch (Exception ex) {
             Logger.getLogger(LogonServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -200,6 +206,8 @@ public class VentaServiceImpl implements VentaService {
             }
             
             con.commit();
+            statement.close();
+            con.close();
         } catch (Exception ex) {
             Logger.getLogger(LogonServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -245,6 +253,8 @@ public class VentaServiceImpl implements VentaService {
             }
             
             con.commit();
+            statement.close();
+            con.close();
         } catch (Exception ex) {
             Logger.getLogger(LogonServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
         }

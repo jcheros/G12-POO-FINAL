@@ -8,9 +8,7 @@ package pe.grupo12.services.impl;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,6 +21,12 @@ import pe.grupo12.services.PublicacionService;
  * @author ID46499778
  */
 public class PublicacionServiceImpl implements PublicacionService {
+    
+    TipoPublicacionServiceImpl tipoPublicacionService;
+
+    public PublicacionServiceImpl() {
+        tipoPublicacionService = new TipoPublicacionServiceImpl();
+    }
 
     @Override
     public List<Publicacion> listar() {
@@ -53,7 +57,7 @@ public class PublicacionServiceImpl implements PublicacionService {
                 publicacion.setTitulo(rs.getString("TITULO"));
                 publicacion.setIdTipo(rs.getString("IDTIPO"));
                 publicacion.setAutor(rs.getString("AUTOR"));
-                publicacion.setNroEdicion(rs.getString("NROEDICION"));
+                publicacion.setNroEdicion(rs.getInt("NROEDICION"));
                 publicacion.setPrecio(rs.getFloat("PRECIO"));
                 publicacion.setStock(rs.getInt("STOCK"));
                 
@@ -61,6 +65,8 @@ public class PublicacionServiceImpl implements PublicacionService {
             }
             
             con.commit();
+            statement.close();
+            con.close();
         } catch (Exception ex) {
             Logger.getLogger(LogonServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -70,7 +76,37 @@ public class PublicacionServiceImpl implements PublicacionService {
 
     @Override
     public Publicacion agregar(Publicacion publicacion) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Connection con = null;
+        
+        try {
+            con = AccesoDB.getConnection();
+            con.setAutoCommit(false);
+            String query = "INSERT INTO PUBLICACION (IDPUBLICACION, TITULO, IDTIPO, AUTOR, NROEDICION, PRECIO, STOCK) VALUES " +
+                    "(?, ?, ?, ?, ?, ?, ?)";
+                       
+            PreparedStatement statement = con.prepareStatement(query);
+            statement.setString(1, publicacion.getId());
+            statement.setString(2, publicacion.getTitulo());
+            statement.setString(3, publicacion.getIdTipo());
+            statement.setString(4, publicacion.getAutor());
+            statement.setInt(5, publicacion.getNroEdicion());
+            statement.setInt(6, publicacion.getPrecio().intValue());
+            statement.setInt(7, publicacion.getStock());
+            
+            int rows = statement.executeUpdate();
+            
+            if (rows > 0) {
+                tipoPublicacionService.actualizarContador(publicacion.getIdTipo());
+            }
+            
+            con.commit();
+            statement.close();
+            con.close();
+        } catch (Exception ex) {
+            Logger.getLogger(LogonServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return publicacion;
     }
 
     @Override
@@ -96,8 +132,10 @@ public class PublicacionServiceImpl implements PublicacionService {
 
             rows = statement.executeUpdate();
             System.out.println(rows + " Registros actualizados");
-            statement.close();
+
             con.commit();
+            statement.close();
+            con.close();
         } catch (Exception ex) {
             Logger.getLogger(LogonServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
         }

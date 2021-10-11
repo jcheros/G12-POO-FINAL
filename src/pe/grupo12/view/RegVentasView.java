@@ -15,12 +15,15 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import pe.grupo12.modelo.Publicacion;
+import pe.grupo12.modelo.TipoPublicacion;
 import pe.grupo12.modelo.Usuario;
 import pe.grupo12.modelo.Venta;
 import pe.grupo12.services.impl.PublicacionServiceImpl;
+import pe.grupo12.services.impl.TipoPublicacionServiceImpl;
 import pe.grupo12.services.impl.VentaServiceImpl;
 
 /**
@@ -29,7 +32,7 @@ import pe.grupo12.services.impl.VentaServiceImpl;
  */
 public class RegVentasView extends javax.swing.JInternalFrame {
     private Usuario usuario;
-    List<String> tiposPublicacion = Arrays.asList(new String[]{"LIB", "REV", "SEP"});
+    List<String> tiposPublicacion = new ArrayList<>();
     List<Publicacion> publicaciones = new ArrayList<>();
     Publicacion publicacionSeleccionada = null;
     Venta venta = new Venta();
@@ -37,6 +40,7 @@ public class RegVentasView extends javax.swing.JInternalFrame {
     SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
     DefaultTableModel model;
     
+    TipoPublicacionServiceImpl tipoPublicacionService;
     PublicacionServiceImpl publicacionService;
     VentaServiceImpl ventaService;
 
@@ -45,9 +49,12 @@ public class RegVentasView extends javax.swing.JInternalFrame {
      */
     public RegVentasView() {
         initComponents();
+        tipoPublicacionService = new TipoPublicacionServiceImpl();
         publicacionService = new PublicacionServiceImpl();
         ventaService = new VentaServiceImpl();
         
+        List<TipoPublicacion> tipos = tipoPublicacionService.litarTipos();
+        tiposPublicacion = tipos.stream().map(TipoPublicacion::getId).collect(Collectors.toList());
         tiposPublicacion.forEach(item -> cbxTipoPublicacion.addItem(item));
         
         cbxTipoPublicacion.addItemListener(this::cbxTipoPublicacionItemStateChanged);
@@ -68,9 +75,10 @@ public class RegVentasView extends javax.swing.JInternalFrame {
             }
         });
         
+        txtIdEmpleado.setText("3");
+        
         txtFechaVenta.setText(format.format(new Date()));
         model = (DefaultTableModel) tblReporteRegistroDeVentas.getModel();
-        tblReporteRegistroDeVentas.removeAll();
         // MainView main = (MainView) this.getParent();
         // txtIdEmpleado.setText(main.getUsuario().getId().toString());
     }
@@ -481,11 +489,8 @@ public class RegVentasView extends javax.swing.JInternalFrame {
     private void btnSalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalirActionPerformed
         // TODO add your handling code here:
         this.limpiarFormulario();
-        
-        for (int i = 0; i < model.getRowCount(); i++) {
-            model.removeRow(i);
-        }
-        
+        model.setRowCount(0);
+        model.fireTableDataChanged();
         this.setVisible(false);
     }//GEN-LAST:event_btnSalirActionPerformed
 
@@ -509,7 +514,6 @@ public class RegVentasView extends javax.swing.JInternalFrame {
         
         Venta ventaBD = ventaService.registrarVenta(venta);
         limpiarFormulario();
-        
         
         model.addRow(new Object[]{
             ventaBD.getId(),

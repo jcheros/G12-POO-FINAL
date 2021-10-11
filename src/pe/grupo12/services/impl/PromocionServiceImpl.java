@@ -53,6 +53,8 @@ public class PromocionServiceImpl implements PromocionService {
             }
 
             con.commit();
+            statement.close();
+            con.close();
         } catch (Exception ex) {
             Logger.getLogger(LogonServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
         }

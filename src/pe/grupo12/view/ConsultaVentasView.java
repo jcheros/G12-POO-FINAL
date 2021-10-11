@@ -5,17 +5,43 @@
  */
 package pe.grupo12.view;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.swing.table.DefaultTableModel;
+import pe.grupo12.modelo.TipoPublicacion;
+import pe.grupo12.modelo.Venta;
+import pe.grupo12.services.impl.TipoPublicacionServiceImpl;
+import pe.grupo12.services.impl.VentaServiceImpl;
+
 /**
  *
  * @author HP
  */
 public class ConsultaVentasView extends javax.swing.JInternalFrame {
-
+    List<String> tiposPublicacion = new ArrayList<>();
+    List<Venta> ventas = new ArrayList<>();
+    
+    TipoPublicacionServiceImpl tipoPublicacionService;
+    VentaServiceImpl ventaService;
+    
+    SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+    DefaultTableModel model;
+    
     /**
      * Creates new form ConsultaVentasView
      */
     public ConsultaVentasView() {
         initComponents();
+        tipoPublicacionService = new TipoPublicacionServiceImpl();
+        ventaService = new VentaServiceImpl();
+        
+        List<TipoPublicacion> tipos = tipoPublicacionService.litarTipos();
+        tiposPublicacion = tipos.stream().map(TipoPublicacion::getId).collect(Collectors.toList());
+        tiposPublicacion.forEach(item -> cbx_TipoPublicacion.addItem(item));
+        
+        model = (DefaultTableModel) tblReporteConsultaDeVentas.getModel();
     }
 
     /**
@@ -40,7 +66,6 @@ public class ConsultaVentasView extends javax.swing.JInternalFrame {
         jLabel1.setFont(new java.awt.Font("Lucida Console", 1, 12)); // NOI18N
         jLabel1.setText("SELECCIONA TIPO DE PUBLICACIÓN:");
 
-        cbx_TipoPublicacion.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         cbx_TipoPublicacion.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 cbx_TipoPublicacionItemStateChanged(evt);
@@ -64,10 +89,7 @@ public class ConsultaVentasView extends javax.swing.JInternalFrame {
         tblReporteConsultaDeVentas.setFont(new java.awt.Font("Lucida Console", 0, 12)); // NOI18N
         tblReporteConsultaDeVentas.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null, null, null}
+
             },
             new String [] {
                 "ID VENTA ", "CLIENTE", "FECHA", "ID EMPLEADO", "ID PUBLICACIÓN", "CANTIDAD", "PRECIO", "DSCTO", "SUB-TOTAL", "IMPUESTO", "TOTAL"
@@ -163,12 +185,42 @@ public class ConsultaVentasView extends javax.swing.JInternalFrame {
 
     private void btnConsultarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConsultarActionPerformed
         // TODO add your handling code here:
+        ventas = ventaService.listarVentasPorTipoPublicacion(cbx_TipoPublicacion.getSelectedItem().toString());
+        limpiarTabla();
+        
+        if (!ventas.isEmpty()) {
+            ventas.forEach(venta -> {
+                model.addRow(new Object[]{
+                    venta.getId(),
+                    venta.getCliente(),
+                    format.format(venta.getFecha()),
+                    venta.getIdEmpleado(),
+                    venta.getIdPublicacion(),
+                    venta.getCantidad(),
+                    venta.getPrecio(),
+                    venta.getDcto(),
+                    venta.getSubTotal(),
+                    venta.getImpuesto(),
+                    venta.getTotal()
+                });
+            });
+            
+            tblReporteConsultaDeVentas.setModel(model);
+        }
     }//GEN-LAST:event_btnConsultarActionPerformed
 
     private void btnSalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalirActionPerformed
         // TODO add your handling code here:
+        cbx_TipoPublicacion.setSelectedIndex(0);
+        limpiarTabla();
+        this.setVisible(false);
     }//GEN-LAST:event_btnSalirActionPerformed
 
+    private void limpiarTabla() {
+        model.setRowCount(0);
+        model.fireTableDataChanged();
+
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnConsultar;
