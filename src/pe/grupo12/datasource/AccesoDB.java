@@ -17,7 +17,7 @@ public class AccesoDB {
         Connection con = null;
         String host = "localhost";
 //        String port = "51521";
-        String port = "51521";
+        String port = "1521";
         String instance = "xe";
         String user = "BOOKSTORE";
         String password = "admin";
